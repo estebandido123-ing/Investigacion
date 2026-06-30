@@ -1,0 +1,141 @@
+import { useState, useEffect, useMemo } from 'react'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+
+function App() {
+  const [anomalias, setAnomalias] = useState([])
+  const [cargando, setCargando] = useState(true)
+
+  // Estado del simulador
+  const [form, setForm] = useState({
+    codigo_acta: `DEMO-${Math.floor(Math.random() * 1000)}`,
+    canton: 'Quito',
+    parroquia: 'Iñaquito',
+    empadronados: 300,
+    votos_validos: 0,
+    votos_blancos: 0,
+    votos_nulos: 0
+  })
+
+  const cargarDatos = () => {
+    fetch('http://127.0.0.1:8000/api/actas/anomalias/')
+      .then(response => response.json())
+      .then(data => {
+        setAnomalias(data)
+        setCargando(false)
+      })
+  }
+
+  useEffect(() => { cargarDatos() }, [])
+
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
+
+  const simularActa = async (e) => {
+    e.preventDefault()
+    const res = await fetch('http://127.0.0.1:8000/api/actas/simular/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(form)
+    })
+    const data = await res.json()
+    
+    if (data.es_anomala) {
+      alert(`🚨 ¡ALERTA CRÍTICA!\nLa IA detectó fraude o inconsistencia severa en el acta.\nRiesgo calculado: ${data.riesgo}%`)
+    } else {
+      alert(`✅ Acta validada correctamente.\nPatrón normal detectado.\nRiesgo: ${data.riesgo}%`)
+    }
+    
+    // Generar un nuevo código para la siguiente prueba y recargar tabla
+    setForm({...form, codigo_acta: `DEMO-${Math.floor(Math.random() * 1000)}`})
+    cargarDatos()
+  }
+
+  const datosGrafico = useMemo(() => {
+    const conteo = anomalias.reduce((acc, acta) => {
+      acc[acta.canton] = acc[acta.canton] || { nombre: acta.canton, cantidad: 0 }
+      acc[acta.canton].cantidad += 1
+      return acc
+    }, {})
+    return Object.values(conteo).sort((a, b) => b.cantidad - a.cantidad)
+  }, [anomalias])
+
+  return (
+    <div style={{ fontFamily: 'Arial, sans-serif', padding: '30px', backgroundColor: '#f4f7f6', minHeight: '100vh' }}>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <div>
+          <h1 style={{ color: '#2c3e50', margin: 0 }}>🚨 Auditoría Electoral IA</h1>
+          <p style={{ color: '#7f8c8d', marginTop: '5px' }}>Provincia de Pichincha - Escrutinio 2025/2026</p>
+        </div>
+        <div style={{ backgroundColor: '#e74c3c', color: 'white', padding: '10px 20px', borderRadius: '8px', fontWeight: 'bold' }}>
+          {anomalias.length} Alertas Críticas
+        </div>
+      </header>
+      
+      {/* PANEL DE SIMULACIÓN EN VIVO */}
+      <div style={{ backgroundColor: '#ecf0f1', padding: '20px', borderRadius: '8px', marginBottom: '20px', borderLeft: '5px solid #3498db' }}>
+        <h3 style={{ marginTop: 0, color: '#2980b9' }}>🔬 Simulador de Ingreso en Tiempo Real</h3>
+        <form onSubmit={simularActa} style={{ display: 'flex', gap: '15px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+          <div><label>Cantón</label><br/><input name="canton" value={form.canton} onChange={handleChange} style={{ padding: '8px' }}/></div>
+          <div><label>Empadronados</label><br/><input type="number" name="empadronados" value={form.empadronados} onChange={handleChange} style={{ padding: '8px', width: '90px' }}/></div>
+          <div><label>V. Válidos</label><br/><input type="number" name="votos_validos" value={form.votos_validos} onChange={handleChange} style={{ padding: '8px', width: '90px' }}/></div>
+          <div><label>V. Blancos</label><br/><input type="number" name="votos_blancos" value={form.votos_blancos} onChange={handleChange} style={{ padding: '8px', width: '90px' }}/></div>
+          <div><label>V. Nulos</label><br/><input type="number" name="votos_nulos" value={form.votos_nulos} onChange={handleChange} style={{ padding: '8px', width: '90px' }}/></div>
+          <button type="submit" style={{ backgroundColor: '#2980b9', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
+            Auditar Acta
+          </button>
+        </form>
+      </div>
+
+      {cargando ? ( <p>Procesando actas...</p> ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px' }}>
+          <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+            <h3 style={{ color: '#34495e', marginTop: 0 }}>Concentración de Anomalías</h3>
+            <div style={{ width: '100%', height: 250 }}>
+              <ResponsiveContainer>
+                <BarChart data={datosGrafico} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="nombre" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip cursor={{fill: '#f5f5f5'}} />
+                  <Bar dataKey="cantidad" fill="#e74c3c" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+            <h3 style={{ color: '#34495e', marginTop: 0 }}>Registro de Inconsistencias</h3>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ backgroundColor: '#2c3e50', color: 'white', textAlign: 'left' }}>
+                  <th style={{ padding: '12px' }}>Código</th>
+                  <th style={{ padding: '12px' }}>Cantón</th>
+                  <th style={{ padding: '12px' }}>Votos Válidos</th>
+                  <th style={{ padding: '12px' }}>Empadronados</th>
+                  <th style={{ padding: '12px' }}>Riesgo IA</th>
+                </tr>
+              </thead>
+              <tbody>
+                {anomalias.map(acta => (
+                  <tr key={acta.id} style={{ borderBottom: '1px solid #eee' }}>
+                    <td style={{ padding: '12px', fontWeight: 'bold', color: '#2980b9' }}>{acta.codigo_acta}</td>
+                    <td style={{ padding: '12px' }}>{acta.canton}</td>
+                    <td style={{ padding: '12px', color: '#c0392b', fontWeight: 'bold' }}>{acta.votos_validos}</td>
+                    <td style={{ padding: '12px' }}>{acta.empadronados}</td>
+                    <td style={{ padding: '12px' }}>
+                      <span style={{ backgroundColor: '#ffeaa7', color: '#d35400', padding: '4px 8px', borderRadius: '12px', fontWeight: 'bold' }}>
+                        {acta.porcentaje_riesgo}%
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default App
+
