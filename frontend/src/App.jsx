@@ -144,6 +144,7 @@ function App() {
             >
               <option value="2026">2025/2026 (Simulación en Vivo)</option>
               <option value="2021">2021 (Histórico CNE)</option>
+              <option value="2023">2023 (Asambleístas CNE)</option>
               <option value="2016">2016 (Histórico CNE)</option>
             </select>
             <span style={{color: '#95a5a6', fontSize: '14px', marginLeft: '10px'}}>
@@ -201,6 +202,8 @@ function App() {
                 <tr style={{ backgroundColor: '#1abc9c', color: 'white', textAlign: 'left' }}>
                   <th style={{ padding: '8px' }}>Cantón</th>
                   <th style={{ padding: '8px' }}>Parroquia</th>
+                  {/* NUEVA COLUMNA DE MESA */}
+                  <th style={{ padding: '8px' }}>Mesa/Junta</th> 
                   <th style={{ padding: '8px' }}>Empadronados</th>
                   <th style={{ padding: '8px' }}>V. Válidos</th>
                   <th style={{ padding: '8px' }}>V. Blancos</th>
@@ -212,6 +215,8 @@ function App() {
                   <tr key={idx} style={{ backgroundColor: 'white', borderBottom: '1px solid #bdc3c7' }}>
                     <td style={{ padding: '8px', fontWeight: 'bold' }}>{acta.canton}</td>
                     <td style={{ padding: '8px' }}>{acta.parroquia}</td>
+                    {/* NUEVO DATO DE MESA */}
+                    <td style={{ padding: '8px', color: '#8e44ad', fontWeight: 'bold' }}>{acta.junta}</td>
                     <td style={{ padding: '8px' }}>{acta.empadronados}</td>
                     <td style={{ padding: '8px', color: '#27ae60', fontWeight: 'bold' }}>{acta.votos_validos}</td>
                     <td style={{ padding: '8px' }}>{acta.votos_blancos}</td>
@@ -278,6 +283,8 @@ function App() {
                 <tr style={{ backgroundColor: '#2c3e50', color: 'white', textAlign: 'left' }}>
                   <th style={{ padding: '12px' }}>Código</th>
                   <th style={{ padding: '12px' }}>Cantón</th>
+                  {/* NUEVA COLUMNA DE MESA */}
+                  <th style={{ padding: '12px' }}>Mesa/Junta</th>
                   <th style={{ padding: '12px' }}>Votos Válidos</th>
                   <th style={{ padding: '12px' }}>Empadronados</th>
                   <th style={{ padding: '12px' }}>Riesgo IA</th>
@@ -288,6 +295,8 @@ function App() {
                   <tr key={acta.codigo_acta || index} style={{ borderBottom: '1px solid #eee' }}>
                     <td style={{ padding: '12px', fontWeight: 'bold', color: '#2980b9' }}>{acta.codigo_acta}</td>
                     <td style={{ padding: '12px' }}>{acta.canton}</td>
+                    {/* NUEVO DATO DE MESA */}
+                    <td style={{ padding: '12px', color: '#8e44ad', fontWeight: 'bold' }}>{acta.junta}</td>
                     <td style={{ padding: '12px', color: '#c0392b', fontWeight: 'bold' }}>{acta.votos_validos}</td>
                     <td style={{ padding: '12px' }}>{acta.empadronados}</td>
                     <td style={{ padding: '12px' }}>
